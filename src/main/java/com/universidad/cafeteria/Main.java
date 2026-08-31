@@ -4,34 +4,30 @@ import com.universidad.cafeteria.model.*;
 
 public class Main {
   public static void main(String[] args) {
-    System.out.println("--- SISTEMA DE PEDIDOS CAFETERÍA ---\n");
+    System.out.println("--- SISTEMA DE PEDIDOS CAFETERÍA (SEMANA 3) ---\n");
 
-    // 1. Creación de cliente (Semana 1 - Encapsulación)
-    Cliente cliente = new Cliente("Carlos Mendoza", "carlos@mail.com", 50.0);
-    System.out.println("Cliente registrado: " + cliente.getNombre() + " | Saldo: $" + cliente.getSaldoDisponible());
-
-    // Prueba de validación de encapsulación en Cliente
-    cliente.setSaldoDisponible(-10.0); // Debería mostrar mensaje de error
-
-    System.out.println("\n--- CATÁLOGO DE PRODUCTOS ---");
-    // 2. Creación de productos (Semana 2 - Herencia)
+    // 1. Catálogo de Productos
     ProductoComida sandwich = new ProductoComida("Sándwich Jamón y Queso", 4.50, 20, true);
     ProductoBebida cafe = new ProductoBebida("Café Americano", 2.50, 50, 350);
-    ProductoBebida jugo = new ProductoBebida("Jugo de Naranja", 3.00, 30, 500);
 
-    // Mostrar información utilizando polimorfismo y sobrescritura
-    sandwich.mostrarInformacion();
-    cafe.mostrarInformacion();
-    jugo.mostrarInformacion();
+    // 2. Instanciación Polimórfica (Declarados como 'Cliente')
+    Cliente clienteMayo = new ClienteMayorista("Distribuidora Central", "ventas@dist.com", 500.0,
+        "Distribuidora Central S.A.");
+    Cliente clienteMino = new ClienteMinorista("Ana López", "ana@mail.com", 30.0, true);
 
-    System.out.println("\n--- CREACIÓN DEL PEDIDO ---");
-    // 3. Creación de Pedido (Semana 2 - Composición)
-    Pedido pedido = new Pedido(cliente);
-    pedido.agregarItem(new ItemPedido(sandwich, 2));
-    pedido.agregarItem(new ItemPedido(cafe, 1));
-    pedido.agregarItem(new ItemPedido(jugo, 1));
+    // 3. Pedido 1 (Mayorista) -> Aplicará 15% de descuento
+    Pedido pedido1 = new Pedido(clienteMayo);
+    pedido1.agregarItem(new ItemPedido(sandwich, 10)); // $45.00
+    pedido1.agregarItem(new ItemPedido(cafe, 5)); // $12.50 (Subtotal = $57.50)
 
-    // Imprimir resumen final
-    pedido.mostrarResumen();
+    // 4. Pedido 2 (Minorista con tarjeta) -> Aplicará 5% de descuento
+    Pedido pedido2 = new Pedido(clienteMino);
+    pedido2.agregarItem(new ItemPedido(sandwich, 2)); // $9.00
+    pedido2.agregarItem(new ItemPedido(cafe, 1)); // $2.50 (Subtotal = $11.50)
+
+    // 5. Salida por Consola
+    pedido1.mostrarResumen();
+    System.out.println();
+    pedido2.mostrarResumen();
   }
 }

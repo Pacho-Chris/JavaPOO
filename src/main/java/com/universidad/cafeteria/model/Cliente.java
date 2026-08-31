@@ -1,6 +1,6 @@
 package com.universidad.cafeteria.model;
 
-public class Cliente {
+public abstract class Cliente {
   private String nombre;
   private String email;
   private double saldoDisponible;
@@ -38,4 +38,7 @@ public class Cliente {
     }
     this.saldoDisponible = saldoDisponible;
   }
+
+  // Método abstracto que obliga a la implementación polimórfica en subclases
+  public abstract double calcularDescuento(double montoTotal);
 }
