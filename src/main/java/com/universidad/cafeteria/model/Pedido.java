@@ -17,6 +17,12 @@ public class Pedido {
   }
 
   public void agregarItem(ItemPedido item) {
+    Producto producto = item.getProducto();
+    if (item.getCantidad() > producto.getStock()) {
+      throw new IllegalArgumentException(
+          "No hay stock suficiente para \"" + producto.getNombre() + "\". Disponible: "
+              + producto.getStock() + ", solicitado: " + item.getCantidad());
+    }
     items.add(item);
   }
 
