@@ -6,6 +6,7 @@
   - [Objetivo del proyecto](#objetivo-del-proyecto)
   - [Principales funcionalidades](#principales-funcionalidades)
   - [Catálogo y colecciones](#catálogo-y-colecciones)
+  - [Interfaz gráfica (JavaFX)](#interfaz-gráfica-javafx)
   - [Estructura de clases](#estructura-de-clases)
   - [Instrucciones básicas para ejecutar](#instrucciones-básicas-para-ejecutar)
   - [Tecnología](#tecnología)
@@ -33,6 +34,7 @@ Aplicar los principios de la Programación Orientada a Objetos —abstracción, 
   - `ClienteMayorista` → 15% de descuento fijo.
   - `ClienteMinorista` → 5% de descuento solo si tiene tarjeta de fidelidad y el subtotal supera los $10.
 - Resumen del pedido impreso en consola.
+- Interfaz gráfica JavaFX con CRUD completo del catálogo, validación de datos y mensajes de éxito/error.
 
 ## Catálogo y colecciones
 
@@ -57,6 +59,24 @@ Operaciones disponibles:
 | Eliminar | `eliminar(String codigo)` |
 | Consultas | `cantidad()` / `estaVacio()` |
 
+## Interfaz gráfica (JavaFX)
+
+Ventana de escritorio (`CatalogoApp` + `CatalogoController`) construida en código Java con JavaFX 21. Se integra directamente con `CatalogoProductos`: cada operación de la interfaz modifica las colecciones (`HashMap`, `HashSet`, `ArrayList`) y la tabla se refresca con `listar()`.
+
+| Zona | Contenido |
+| --- | --- |
+| Formulario | Código, nombre, precio, stock, tipo (Comida/Bebida) y detalle dinámico (apto celíacos o tamaño en ml). |
+| Botones | Agregar, Actualizar, Eliminar (con confirmación) y Limpiar. |
+| Búsqueda | Criterio Código/Nombre, campo de texto, Buscar y Mostrar todo. |
+| Tabla | Código, nombre, precio, stock, tipo y detalle de cada producto. |
+| Barra de estado | Mensajes de éxito, advertencia o error; además se muestran alertas emergentes. |
+
+Eventos y validaciones:
+
+- Botones con `setOnAction`, Enter en el campo de búsqueda, selección de fila que carga el formulario (el código queda bloqueado porque es la clave inmutable) y cambio de tipo que alterna el campo de detalle.
+- Se validan campos obligatorios, precio numérico ≥ 0, stock entero ≥ 0 y tamaño en ml > 0 para bebidas; los duplicados se rechazan desde el `HashSet` del catálogo.
+- Cada error o éxito se informa con una `Alert` y con la barra de estado.
+
 ## Estructura de clases
 
 | Clase | Responsabilidad |
@@ -66,6 +86,8 @@ Operaciones disponibles:
 | `ProductoComida` | Extiende `Producto`; agrega `esAptoCeliacos`. |
 | `ProductoBebida` | Extiende `Producto`; agrega `tamanoMl`. |
 | `CatalogoProductos` | Administra el catálogo con `HashMap`, `HashSet` y `ArrayList`; operaciones CRUD y búsquedas. |
+| `CatalogoApp` | Aplicación JavaFX: crea la ventana principal del catálogo. |
+| `CatalogoController` | Construye la interfaz, maneja los eventos y ejecuta las operaciones CRUD con validaciones. |
 | `Cliente` (abstracta) | Atributos `nombre`, `email`, `saldoDisponible`; define `calcularDescuento`. |
 | `ClienteMayorista` | Extiende `Cliente`; agrega `razonSocial`; descuento del 15%. |
 | `ClienteMinorista` | Extiende `Cliente`; agrega `tieneTarjetaFidelidad`; descuento del 5%. |
@@ -82,15 +104,22 @@ Requisitos previos: **Java** y **Maven**.
    mvn clean package
    ```
 
-2. Ejecutar la aplicación:
+2. Ejecutar la aplicación de consola:
 
    ```bash
    mvn exec:java -Dexec.mainClass="com.universidad.cafeteria.Main"
    ```
 
+3. Ejecutar la interfaz gráfica JavaFX:
+
+   ```bash
+   mvn javafx:run
+   ```
+
 ## Tecnología
 
-- **Java**
+- **Java** 17+
+- **JavaFX** 21 (interfaz gráfica)
 - **Maven** (build)
 
 ## Autor
