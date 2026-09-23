@@ -3,8 +3,8 @@ package com.universidad.cafeteria.model;
 public class ProductoBebida extends Producto {
   private int tamanoMl;
 
-  public ProductoBebida(String nombre, double precioBase, int stock, int tamanoMl) {
-    super(nombre, precioBase, stock); // Llama al constructor de la superclase Producto
+  public ProductoBebida(String codigo, String nombre, double precioBase, int stock, int tamanoMl) {
+    super(codigo, nombre, precioBase, stock); // Llama al constructor de la superclase Producto
     setTamanoMl(tamanoMl);
   }
 

@@ -3,8 +3,8 @@ package com.universidad.cafeteria.model;
 public class ProductoComida extends Producto {
   private boolean esAptoCeliacos;
 
-  public ProductoComida(String nombre, double precioBase, int stock, boolean esAptoCeliacos) {
-    super(nombre, precioBase, stock); // Llama al constructor de la superclase Producto
+  public ProductoComida(String codigo, String nombre, double precioBase, int stock, boolean esAptoCeliacos) {
+    super(codigo, nombre, precioBase, stock); // Llama al constructor de la superclase Producto
     this.esAptoCeliacos = esAptoCeliacos;
   }
 
