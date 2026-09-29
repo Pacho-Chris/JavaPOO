@@ -6,6 +6,9 @@
   - [Objetivo del proyecto](#objetivo-del-proyecto)
   - [Principales funcionalidades](#principales-funcionalidades)
   - [Catálogo y colecciones](#catálogo-y-colecciones)
+  - [Cola de pedidos pendientes (estructura propia)](#cola-de-pedidos-pendientes-estructura-propia)
+  - [Patrón Repository](#patrón-repository)
+  - [Pruebas unitarias (JUnit 5)](#pruebas-unitarias-junit-5)
   - [Interfaz gráfica (JavaFX)](#interfaz-gráfica-javafx)
   - [Estructura de clases](#estructura-de-clases)
   - [Instrucciones básicas para ejecutar](#instrucciones-básicas-para-ejecutar)
@@ -59,6 +62,42 @@ Operaciones disponibles:
 | Eliminar | `eliminar(String codigo)` |
 | Consultas | `cantidad()` / `estaVacio()` |
 
+## Cola de pedidos pendientes (estructura propia)
+
+Aplicación de consola (`MainConsola`) que administra los pedidos de la cafetería con una **cola FIFO** implementada manualmente (`Cola<T>`), sin usar `Queue`, `Deque`, `ArrayDeque` ni `LinkedList` de la biblioteca estándar. El primer pedido registrado es el primero en atenderse.
+
+La estructura usa un arreglo circular (`T[] elementos`, índices `frente` y `fin`, más `cantidad`) y **crece automáticamente** al duplicar su capacidad cuando se llena.
+
+| Operación | Método | Comportamiento |
+| --- | --- | --- |
+| Agregar | `encolar(T)` | Agrega al final; rechaza `null`. |
+| Eliminar | `desencolar()` | Retira y devuelve el primero; lanza `ColaVaciaException` si está vacía. |
+| Consultar siguiente | `frente()` | Devuelve el primero sin eliminarlo; lanza `ColaVaciaException` si está vacía. |
+| ¿Está vacía? | `estaVacia()` | |
+| Cantidad | `cantidad()` | |
+| Listar | `listar()` | Copia en orden FIFO sin modificar la cola. |
+
+Flujo de la aplicación: registrar pedido (cliente + productos del catálogo), atender el siguiente, ver el siguiente sin atender, consultar el estado y listar los pendientes.
+
+## Patrón Repository
+
+La lógica de consola no accede directamente a la cola: lo hace a través de `Repository<T>`, que separa el acceso a los datos de la aplicación.
+
+| Tipo | Rol |
+| --- | --- |
+| `Repository<T>` | Interfaz genérica: `guardar`, `eliminar`, `consultar`, `estaVacio`, `cantidad`, `listar`. |
+| `ColaRepository<T>` | Implementación en memoria que envuelve una `Cola<T>`. |
+| `PedidosPendientes` | Servicio de dominio que usa `Repository<Pedido>` sin conocer la estructura interna. |
+
+Si la estructura cambiara (por ejemplo, a una pila), solo se reemplaza la implementación de `Repository` y la lógica principal no se modifica.
+
+## Pruebas unitarias (JUnit 5)
+
+| Clase | Qué comprueba |
+| --- | --- |
+| `ColaTest` | Orden FIFO, `frente()` no elimina, cola vacía lanza excepción, `estaVacia`/`cantidad`, rechazo de `null`, crecimiento automático y orden tras crecer. |
+| `ColaRepositoryTest` | `guardar`, `eliminar`, `consultar`, `estaVacio`, `cantidad`, `listar` y eliminación en orden de llegada con objetos `Pedido`. |
+
 ## Interfaz gráfica (JavaFX)
 
 Ventana de escritorio (`CatalogoApp` + `CatalogoController`) construida en código Java con JavaFX 21. Se integra directamente con `CatalogoProductos`: cada operación de la interfaz modifica las colecciones (`HashMap`, `HashSet`, `ArrayList`) y la tabla se refresca con `listar()`.
@@ -93,6 +132,12 @@ Eventos y validaciones:
 | `ClienteMinorista` | Extiende `Cliente`; agrega `tieneTarjetaFidelidad`; descuento del 5%. |
 | `ItemPedido` | Contiene un `Producto` y su `cantidad`; calcula su subtotal. |
 | `Pedido` | Compone una lista de `ItemPedido` y un `Cliente`; calcula totales y muestra el resumen. |
+| `Cola<T>` | Estructura FIFO implementada manualmente con arreglo circular y crecimiento automático. |
+| `ColaVaciaException` | Excepción propia para operaciones inválidas sobre una cola vacía. |
+| `Repository<T>` | Interfaz genérica que desacopla la lógica del almacenamiento. |
+| `ColaRepository<T>` | Implementación del repositorio sobre `Cola<T>`. |
+| `PedidosPendientes` | Servicio que registra, atiende y consulta pedidos usando `Repository<Pedido>`. |
+| `MainConsola` | Menú de consola para administrar la cola de pedidos (sin GUI). |
 
 ## Instrucciones básicas para ejecutar
 
@@ -104,13 +149,25 @@ Requisitos previos: **Java** y **Maven**.
    mvn clean package
    ```
 
-2. Ejecutar la aplicación de consola:
+2. Ejecutar la aplicación de consola con los demos (catálogo y pedidos):
 
    ```bash
    mvn exec:java -Dexec.mainClass="com.universidad.cafeteria.Main"
    ```
 
-3. Ejecutar la interfaz gráfica JavaFX:
+3. Ejecutar el menú de consola de la cola de pedidos:
+
+   ```bash
+   mvn exec:java -Dexec.mainClass="com.universidad.cafeteria.consola.MainConsola"
+   ```
+
+4. Ejecutar las pruebas unitarias:
+
+   ```bash
+   mvn test
+   ```
+
+5. Ejecutar la interfaz gráfica JavaFX:
 
    ```bash
    mvn javafx:run
@@ -120,6 +177,7 @@ Requisitos previos: **Java** y **Maven**.
 
 - **Java** 17+
 - **JavaFX** 21 (interfaz gráfica)
+- **JUnit** 5 (pruebas unitarias)
 - **Maven** (build)
 
 ## Autor
