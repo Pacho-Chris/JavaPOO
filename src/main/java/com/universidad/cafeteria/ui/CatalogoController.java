@@ -3,6 +3,8 @@ package com.universidad.cafeteria.ui;
 import com.universidad.cafeteria.model.Producto;
 import com.universidad.cafeteria.model.ProductoBebida;
 import com.universidad.cafeteria.model.ProductoComida;
+import com.universidad.cafeteria.repository.CatalogoJsonRepository;
+import com.universidad.cafeteria.repository.PersistenciaException;
 import com.universidad.cafeteria.service.CatalogoProductos;
 
 import javafx.beans.property.SimpleStringProperty;
@@ -29,7 +31,8 @@ import java.util.List;
 import java.util.Optional;
 
 public class CatalogoController {
-  private final CatalogoProductos catalogo = new CatalogoProductos();
+  private final CatalogoProductos catalogo;
+  private String avisoInicial;
 
   private final BorderPane root = new BorderPane();
   private final Label barraEstado = new Label("Listo. Use el formulario para gestionar el catálogo.");
@@ -57,23 +60,46 @@ public class CatalogoController {
   private final ObservableList<Producto> datosTabla = FXCollections.observableArrayList();
 
   public CatalogoController() {
-    cargarDatosIniciales();
+    this.catalogo = crearCatalogo();
     construirInterfaz();
     conectarEventos();
     refrescarTabla();
+    if (avisoInicial != null) {
+      mostrarAdvertencia(avisoInicial);
+    }
   }
 
   public BorderPane getRoot() {
     return root;
   }
 
-  private void cargarDatosIniciales() {
-    catalogo.agregar(new ProductoComida("P001", "Sándwich Jamón y Queso", 4.50, 20, true));
-    catalogo.agregar(new ProductoComida("P002", "Ensalada César", 5.75, 12, false));
-    catalogo.agregar(new ProductoComida("P003", "Brownie de Chocolate", 3.25, 30, true));
-    catalogo.agregar(new ProductoBebida("B001", "Café Americano", 2.50, 50, 350));
-    catalogo.agregar(new ProductoBebida("B002", "Jugo Natural de Naranja", 3.00, 25, 400));
-    catalogo.agregar(new ProductoBebida("B003", "Agua Mineral", 1.50, 100, 500));
+  private CatalogoProductos crearCatalogo() {
+    try {
+      CatalogoProductos creado = new CatalogoProductos();
+      if (creado.estaVacio()) {
+        cargarDatosIniciales(creado);
+      }
+      return creado;
+    } catch (PersistenciaException e) {
+      avisoInicial = "No se pudo leer el catálogo guardado: " + e.getMessage()
+          + " Se cargaron datos de ejemplo.";
+      CatalogoProductos creado = new CatalogoProductos(new CatalogoJsonRepository(), false);
+      try {
+        cargarDatosIniciales(creado);
+      } catch (PersistenciaException e2) {
+        avisoInicial += " Además, no se pudo guardar el catálogo: " + e2.getMessage();
+      }
+      return creado;
+    }
+  }
+
+  private void cargarDatosIniciales(CatalogoProductos destino) {
+    destino.agregar(new ProductoComida("P001", "Sándwich Jamón y Queso", 4.50, 20, true));
+    destino.agregar(new ProductoComida("P002", "Ensalada César", 5.75, 12, false));
+    destino.agregar(new ProductoComida("P003", "Brownie de Chocolate", 3.25, 30, true));
+    destino.agregar(new ProductoBebida("B001", "Café Americano", 2.50, 50, 350));
+    destino.agregar(new ProductoBebida("B002", "Jugo Natural de Naranja", 3.00, 25, 400));
+    destino.agregar(new ProductoBebida("B003", "Agua Mineral", 1.50, 100, 500));
   }
 
   private void construirInterfaz() {
@@ -241,6 +267,8 @@ public class CatalogoController {
       mostrarExito("Producto \"" + producto.getNombre() + "\" agregado correctamente.");
     } catch (IllegalArgumentException e) {
       mostrarError(e.getMessage());
+    } catch (PersistenciaException e) {
+      mostrarError("El producto se agregó en memoria, pero no se pudo guardar: " + e.getMessage());
     }
   }
 
@@ -328,6 +356,8 @@ public class CatalogoController {
       mostrarExito("Producto \"" + nombre.trim() + "\" actualizado correctamente.");
     } catch (IllegalArgumentException e) {
       mostrarError(e.getMessage());
+    } catch (PersistenciaException e) {
+      mostrarError("El producto se actualizó en memoria, pero no se pudo guardar: " + e.getMessage());
     }
   }
 
@@ -344,10 +374,14 @@ public class CatalogoController {
     confirmacion.setHeaderText(null);
     Optional<ButtonType> respuesta = confirmacion.showAndWait();
     if (respuesta.isPresent() && respuesta.get() == ButtonType.YES) {
-      catalogo.eliminar(seleccionado.getCodigo());
-      refrescarTabla();
-      limpiarFormulario();
-      mostrarExito("Producto \"" + seleccionado.getNombre() + "\" eliminado correctamente.");
+      try {
+        catalogo.eliminar(seleccionado.getCodigo());
+        refrescarTabla();
+        limpiarFormulario();
+        mostrarExito("Producto \"" + seleccionado.getNombre() + "\" eliminado correctamente.");
+      } catch (PersistenciaException e) {
+        mostrarError("El producto se eliminó en memoria, pero no se pudo guardar: " + e.getMessage());
+      }
     }
   }
 

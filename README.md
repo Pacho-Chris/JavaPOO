@@ -8,6 +8,7 @@
   - [Catálogo y colecciones](#catálogo-y-colecciones)
   - [Cola de pedidos pendientes (estructura propia)](#cola-de-pedidos-pendientes-estructura-propia)
   - [Patrón Repository](#patrón-repository)
+  - [Persistencia en archivo (JSON)](#persistencia-en-archivo-json)
   - [Pruebas unitarias (JUnit 5)](#pruebas-unitarias-junit-5)
   - [Interfaz gráfica (JavaFX)](#interfaz-gráfica-javafx)
   - [Estructura de clases](#estructura-de-clases)
@@ -38,6 +39,7 @@ Aplicar los principios de la Programación Orientada a Objetos —abstracción, 
   - `ClienteMinorista` → 5% de descuento solo si tiene tarjeta de fidelidad y el subtotal supera los $10.
 - Resumen del pedido impreso en consola.
 - Interfaz gráfica JavaFX con CRUD completo del catálogo, validación de datos y mensajes de éxito/error.
+- Persistencia del catálogo en JSON (`datos/catalogo.json`): carga al iniciar y guardado automático tras cada operación CRUD.
 
 ## Catálogo y colecciones
 
@@ -91,6 +93,22 @@ La lógica de consola no accede directamente a la cola: lo hace a través de `Re
 
 Si la estructura cambiara (por ejemplo, a una pila), solo se reemplaza la implementación de `Repository` y la lógica principal no se modifica.
 
+## Persistencia en archivo (JSON)
+
+El catálogo se guarda en `datos/catalogo.json` usando **Gson**. `CatalogoProductos` carga el archivo al construirse y guarda automáticamente después de cada operación CRUD, de modo que los cambios sobreviven al cierre de la aplicación.
+
+| Tipo | Rol |
+| --- | --- |
+| `CatalogoRepository` | Interfaz de persistencia del catálogo: `cargar()` y `guardar(List<Producto>)`. |
+| `CatalogoJsonRepository` | Implementación con Gson; escribe un campo `tipo` (`COMIDA`/`BEBIDA`) para conservar el subtipo y sus atributos propios al deserializar. |
+| `PersistenciaException` | Excepción no verificada para errores de lectura/escritura del archivo. |
+
+Comportamiento:
+
+- Archivo inexistente → catálogo vacío; la GUI carga los productos de ejemplo y los persiste (primer arranque).
+- Archivo corrupto o con tipos desconocidos → se informa con una alerta y se regenera con datos de ejemplo.
+- El archivo se crea en la raíz del proyecto al ejecutar la GUI; la carpeta `datos/` está excluida de Git.
+
 ## Pruebas unitarias (JUnit 5)
 
 | Clase | Qué comprueba |
@@ -136,6 +154,10 @@ Eventos y validaciones:
 | `ColaVaciaException` | Excepción propia para operaciones inválidas sobre una cola vacía. |
 | `Repository<T>` | Interfaz genérica que desacopla la lógica del almacenamiento. |
 | `ColaRepository<T>` | Implementación del repositorio sobre `Cola<T>`. |
+| `CatalogoRepository` | Interfaz que desacopla la persistencia del catálogo (`cargar`/`guardar`). |
+| `CatalogoJsonRepository` | Persistencia del catálogo en JSON con Gson, conservando los subtipos de `Producto`. |
+| `CatalogoRepositoryEnMemoria` | Implementación sin persistencia para demos y pruebas. |
+| `PersistenciaException` | Error de lectura/escritura del archivo del catálogo. |
 | `PedidosPendientes` | Servicio que registra, atiende y consulta pedidos usando `Repository<Pedido>`. |
 | `MainConsola` | Menú de consola para administrar la cola de pedidos (sin GUI). |
 
@@ -177,6 +199,7 @@ Requisitos previos: **Java** y **Maven**.
 
 - **Java** 17+
 - **JavaFX** 21 (interfaz gráfica)
+- **Gson** 2.14.0 (persistencia del catálogo en JSON)
 - **JUnit** 5 (pruebas unitarias)
 - **Maven** (build)
 

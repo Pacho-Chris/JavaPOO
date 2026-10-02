@@ -37,3 +37,6 @@ Thumbs.db
 
 # Logs
 *.log
+
+# Datos generados en tiempo de ejecución (catálogo persistido)
+datos/

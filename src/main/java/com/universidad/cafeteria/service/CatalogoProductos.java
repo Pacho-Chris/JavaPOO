@@ -1,6 +1,9 @@
 package com.universidad.cafeteria.service;
 
 import com.universidad.cafeteria.model.Producto;
+import com.universidad.cafeteria.repository.CatalogoJsonRepository;
+import com.universidad.cafeteria.repository.CatalogoRepository;
+import com.universidad.cafeteria.repository.PersistenciaException;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -17,8 +20,48 @@ public class CatalogoProductos {
   private final Set<Producto> productosUnicos = new HashSet<>();
   // ArrayList: conserva el orden de inserción para listar el catálogo
   private final List<Producto> productosOrdenados = new ArrayList<>();
+  // Repositorio de archivo: carga al iniciar y guarda tras cada cambio
+  private final CatalogoRepository repositorio;
+
+  public CatalogoProductos() {
+    this(new CatalogoJsonRepository(), true);
+  }
+
+  public CatalogoProductos(CatalogoRepository repositorio) {
+    this(repositorio, true);
+  }
+
+  public CatalogoProductos(CatalogoRepository repositorio, boolean cargarAlIniciar) {
+    if (repositorio == null) {
+      throw new IllegalArgumentException("El repositorio no puede ser nulo.");
+    }
+    this.repositorio = repositorio;
+    if (cargarAlIniciar) {
+      cargarDesdeRepositorio();
+    }
+  }
+
+  private void cargarDesdeRepositorio() {
+    for (Producto producto : repositorio.cargar()) {
+      try {
+        agregarSinPersistir(producto);
+      } catch (IllegalArgumentException e) {
+        throw new PersistenciaException(
+            "El archivo del catálogo contiene productos inválidos o duplicados: " + e.getMessage(), e);
+      }
+    }
+  }
+
+  private void persistir() {
+    repositorio.guardar(listar());
+  }
 
   public void agregar(Producto producto) {
+    agregarSinPersistir(producto);
+    persistir();
+  }
+
+  private void agregarSinPersistir(Producto producto) {
     if (producto == null) {
       throw new IllegalArgumentException("El producto no puede ser nulo.");
     }
@@ -72,6 +115,7 @@ public class CatalogoProductos {
     producto.setNombre(nuevoNombre);
     producto.setPrecioBase(nuevoPrecio);
     producto.setStock(nuevoStock);
+    persistir();
     return true;
   }
 
@@ -82,6 +126,7 @@ public class CatalogoProductos {
     }
     productosUnicos.remove(producto);
     productosOrdenados.remove(producto);
+    persistir();
     return true;
   }
 

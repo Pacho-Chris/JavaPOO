@@ -1,6 +1,7 @@
 package com.universidad.cafeteria;
 
 import com.universidad.cafeteria.model.*;
+import com.universidad.cafeteria.repository.CatalogoRepositoryEnMemoria;
 import com.universidad.cafeteria.service.CatalogoProductos;
 
 import java.util.List;
@@ -16,7 +17,7 @@ public class Main {
   private static void demoCatalogo() {
     System.out.println("========== DEMO 1: CATÁLOGO DE PRODUCTOS ==========\n");
 
-    CatalogoProductos catalogo = new CatalogoProductos();
+    CatalogoProductos catalogo = new CatalogoProductos(new CatalogoRepositoryEnMemoria());
 
     // 1. AGREGAR: productos de prueba (comida y bebida)
     catalogo.agregar(new ProductoComida("P001", "Sándwich Jamón y Queso", 4.50, 20, true));
